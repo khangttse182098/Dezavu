@@ -3,6 +3,7 @@
 import { randomize } from "@/utils/randomize";
 import { getSession } from "next-auth/react";
 import { useEffect, useState } from "react";
+import { getMostListenedTrackList, playTrackByUri } from "./utils/spotifyApi";
 
 declare global {
   interface Window {
@@ -18,36 +19,6 @@ type PlayerStateType = {
   deviceId: string | null;
   isReady: boolean;
   sdkReady: boolean;
-};
-
-const playTrack = async (
-  trackUri: string,
-  accessToken: string,
-  deviceId: string
-) => {
-  const url = `https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`;
-
-  try {
-    const response = await fetch(url, {
-      method: "PUT",
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        uris: [trackUri],
-      }),
-    });
-
-    if (response.ok) {
-      console.log("Track is playing");
-    } else {
-      const error = await response.json();
-      console.error("Error playing track:", error);
-    }
-  } catch (error) {
-    console.error("Network error:", error);
-  }
 };
 
 //main component
@@ -71,8 +42,7 @@ const Page = () => {
       }));
 
       //get track list
-      const trackListApiRes = await fetch("http://localhost:3000/api/track");
-      const trackList = await trackListApiRes.json();
+      const trackList = await getMostListenedTrackList();
       setPlayerState((prev) => ({
         ...prev,
         trackList,
@@ -141,7 +111,7 @@ const Page = () => {
       const trackUri = trackList.items[randomTrackNumber].uri;
 
       // play track
-      await playTrack(
+      await playTrackByUri(
         trackUri as string,
         accessToken as string,
         deviceId as string
