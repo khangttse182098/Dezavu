@@ -11,6 +11,15 @@ declare global {
   }
 }
 
+type PlayerStateType = {
+  accessToken: string | null;
+  trackList: SpotifyApi.UsersTopTracksResponse | null;
+  player: Spotify.Player | null;
+  deviceId: string | null;
+  isReady: boolean;
+  sdkReady: boolean;
+};
+
 const playTrack = async (
   trackUri: string,
   accessToken: string,
@@ -43,24 +52,31 @@ const playTrack = async (
 
 //main component
 const Page = () => {
-  const [accessToken, setAccessToken] = useState<string>();
-  const [trackList, setTrackList] =
-    useState<SpotifyApi.UsersTopArtistsResponse | null>();
-  const [player, setPlayer] = useState<Spotify.Player>();
-  const [deviceId, setDeviceId] = useState<string | null>();
-  const [isReady, setIsReady] = useState(false);
-  const [sdkReady, setSdkReady] = useState(false);
+  const [playerState, setPlayerState] = useState<PlayerStateType>({
+    accessToken: "",
+    trackList: null,
+    player: null,
+    deviceId: "",
+    isReady: false,
+    sdkReady: false,
+  });
 
   useEffect(() => {
     const fetchData = async () => {
       //get access token
       const session = await getSession();
-      setAccessToken(session?.access_token);
+      setPlayerState((prev) => ({
+        ...prev,
+        accessToken: session?.access_token as string | null,
+      }));
 
       //get track list
       const trackListApiRes = await fetch("http://localhost:3000/api/track");
       const trackList = await trackListApiRes.json();
-      setTrackList(trackList);
+      setPlayerState((prev) => ({
+        ...prev,
+        trackList,
+      }));
 
       //set up sdk
       window.onSpotifyWebPlaybackSDKReady = () => {
@@ -71,10 +87,16 @@ const Page = () => {
           },
           volume: 0,
         });
-        setPlayer(player);
+        setPlayerState((prev) => ({
+          ...prev,
+          player,
+        }));
 
         player.addListener("ready", ({ device_id }: { device_id: string }) => {
-          setDeviceId(device_id);
+          setPlayerState((prev) => ({
+            ...prev,
+            deviceId: device_id,
+          }));
         });
 
         player.connect().then((success) => {
@@ -83,7 +105,7 @@ const Page = () => {
               "The Web Playback SDK successfully connected to Spotify!"
             );
 
-            setIsReady(true);
+            setPlayerState((prev) => ({ ...prev, isReady: true }));
           }
         });
       };
@@ -96,7 +118,10 @@ const Page = () => {
       script.onload = () => {
         console.log("Spotify Web Playback SDK script loaded successfully.");
 
-        setSdkReady(true);
+        setPlayerState((prev) => ({
+          ...prev,
+          sdkReady: true,
+        }));
       };
 
       document.body.appendChild(script);
@@ -104,11 +129,16 @@ const Page = () => {
     fetchData();
   }, []);
 
+  //handle play track at random time
   const handlePlayTrack = async () => {
+    const { accessToken, deviceId, player, trackList } = playerState;
+    //place holder value for duration
     let duration = 120 * 1000;
+
     if (accessToken && deviceId && player && trackList) {
-      const randomTrackNumber = randomize(trackList?.items.length as number);
-      const trackUri = trackList?.items[randomTrackNumber].uri;
+      //generate random track number
+      const randomTrackNumber = randomize(trackList.items.length as number);
+      const trackUri = trackList.items[randomTrackNumber].uri;
 
       // play track
       await playTrack(
@@ -117,39 +147,40 @@ const Page = () => {
         deviceId as string
       );
 
-      //play at random time
+      //get current track's time
       player.addListener("player_state_changed", (state) => {
         if (state) {
           const currentTrackTime = state.track_window.current_track.duration_ms;
           duration = currentTrackTime;
           console.log(duration);
 
-          player.removeListener("player_state_changed");
+          playerState.player?.removeListener("player_state_changed");
         }
       });
 
+      //skip to a random time in the track
       player.seek(randomize(duration)).then(() => {
         console.log("seeking");
-        player.setVolume(1);
+        playerState.player?.setVolume(1);
       });
     }
   };
 
   return (
-    <>
-      {isReady && sdkReady ? (
-        <div className="h-screen w-screen flex justify-center items-center">
-          <button
-            onClick={handlePlayTrack}
-            className="bg-blue-500 w-56 h-20 hover:bg-blue-800 font-bold text-slate-300 text-lg border-none rounded-md scale-100 hover:scale-95 transition-all"
-          >
-            Play
-          </button>
-        </div>
+    <div className="h-screen w-screen flex justify-center items-center">
+      {playerState.isReady &&
+      playerState.sdkReady &&
+      playerState.accessToken ? (
+        <button
+          onClick={handlePlayTrack}
+          className="bg-blue-500 w-56 h-20 hover:bg-blue-800 font-bold text-slate-300 text-lg border-none rounded-md scale-100 hover:scale-95 transition-all"
+        >
+          Play
+        </button>
       ) : (
-        <p>Loading Player...</p>
+        <p className="font-bold text-slate-300 text-lg">Loading...</p>
       )}
-    </>
+    </div>
   );
 };
 

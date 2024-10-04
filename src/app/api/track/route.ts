@@ -5,7 +5,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(
   req: NextRequest
-): Promise<NextResponse<SpotifyApi.UsersTopArtistsResponse | any>> {
+): Promise<NextResponse<SpotifyApi.UsersTopTracksResponse | any>> {
   const session = await getServerSession(authConfig);
 
   try {
