@@ -9,7 +9,7 @@ export async function GET(
 
   try {
     const res = await fetch(
-      `${process.env.NEXT_PUBLIC_SPOTIFY_API_BASE_URL}/me/top/tracks?time_range=long_term&limit=20`,
+      `${process.env.NEXT_PUBLIC_SPOTIFY_API_BASE_URL}/me/top/tracks?time_range=long_term&limit=50`,
       {
         headers: {
           Authorization: `Bearer ${session?.access_token}`,

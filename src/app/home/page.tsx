@@ -1,3 +1,6 @@
+//TODO: Visual progress bar
+//TODO: play small part of song
+
 "use client";
 
 import { randomize } from "@/utils/randomize";
@@ -25,16 +28,20 @@ type PlayerStateType = {
   sdkReady: boolean;
 };
 
+const initialPlayerStateValue = {
+  accessToken: "",
+  trackList: null,
+  player: null,
+  deviceId: "",
+  isReady: false,
+  sdkReady: false,
+};
+
 //main component
 const Page = () => {
-  const [playerState, setPlayerState] = useState<PlayerStateType>({
-    accessToken: "",
-    trackList: null,
-    player: null,
-    deviceId: "",
-    isReady: false,
-    sdkReady: false,
-  });
+  const [playerState, setPlayerState] = useState<PlayerStateType>(
+    initialPlayerStateValue
+  );
 
   useEffect(() => {
     const fetchData = async () => {
@@ -103,7 +110,8 @@ const Page = () => {
 
   //handle play track at random time
   const handlePlayTrack = async () => {
-    const { accessToken, trackList, deviceId, isReady, sdkReady } = playerState;
+    const { accessToken, trackList, deviceId, isReady, sdkReady, player } =
+      playerState;
 
     if (accessToken && trackList && deviceId && isReady && sdkReady) {
       //get random track's id
@@ -126,7 +134,8 @@ const Page = () => {
         trackUri,
         accessToken,
         randomTrackDuration,
-        deviceId as string
+        deviceId as string,
+        player as Spotify.Player
       );
     }
   };
