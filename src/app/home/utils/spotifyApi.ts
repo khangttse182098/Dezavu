@@ -1,14 +1,8 @@
 const playInterval = (duration: number, player: Spotify.Player) => {
-  player.getCurrentState().then((state) => {
-    //check if song is currently playing
-    if (state) {
-      console.log("Playing in interval...");
-      //until hitting duration, pause the song
-      setTimeout(() => {
-        player.pause();
-      }, duration * 1000);
-    }
-  });
+  console.log("Playing in interval...");
+  setTimeout(() => {
+    player.pause();
+  }, duration * 1000);
 };
 
 //getTrackDetailById
@@ -57,8 +51,9 @@ export const playTrackByUri = async (
     });
 
     if (response.ok) {
-      playInterval(1, player);
       console.log("Currently playing...");
+      //set duration that the song is playing in
+      playInterval(3, player);
     } else {
       const error = await response.json();
       console.error("Error playing track:", error);
@@ -70,6 +65,22 @@ export const playTrackByUri = async (
 
 export const getMostListenedTrackList = async () => {
   const res = await fetch("http://localhost:3000/api/track");
-
   return await res.json();
+};
+
+export const searchTracks = async (
+  searchString: string,
+  accessToken: string
+): Promise<SpotifyApi.TrackSearchResponse> => {
+  const res = await fetch(
+    `${process.env.NEXT_PUBLIC_SPOTIFY_API_BASE_URL}/search?q=${searchString}&type=track&limit=4`,
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    }
+  );
+  const data = await res.json();
+  console.log(data);
+  return data;
 };
