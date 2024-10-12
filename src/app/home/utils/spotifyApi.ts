@@ -1,8 +1,9 @@
+//play the song for x seconds
 const playInterval = (duration: number, player: Spotify.Player) => {
   console.log("Playing in interval...");
   setTimeout(() => {
     player.pause();
-  }, duration * 1000);
+  }, 3000);
 };
 
 //getTrackDetailById
@@ -33,7 +34,8 @@ export const playTrackByUri = async (
   accessToken: string,
   position: number,
   deviceId: string,
-  player: Spotify.Player
+  player: Spotify.Player,
+  duration: number
 ) => {
   const url = `${process.env.NEXT_PUBLIC_SPOTIFY_API_BASE_URL}/me/player/play/?device_id=${deviceId}`;
 
@@ -51,9 +53,20 @@ export const playTrackByUri = async (
     });
 
     if (response.ok) {
-      console.log("Currently playing...");
-      //set duration that the song is playing in
-      playInterval(3, player);
+      // Once the song is playing, call playInterval
+      // playInterval(10, player);
+      player.addListener("player_state_changed", (state) => {
+        console.log(state);
+        if (state && state.duration === duration && !state.loading) {
+          console.log(state);
+
+          console.log("Track is now playing");
+          // Once the song is playing, call playInterval
+          playInterval(3000, player);
+          // Optionally, remove the event listener after it's no longer needed
+          player.removeListener("player_state_changed");
+        }
+      });
     } else {
       const error = await response.json();
       console.error("Error playing track:", error);

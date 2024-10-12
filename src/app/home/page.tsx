@@ -12,6 +12,9 @@ import {
   playTrackByUri,
   searchTracks,
 } from "./utils/spotifyApi";
+import PlayButton from "./components/PlayButton";
+import SearchList from "./components/SearchList";
+import { initializeSpotifySdk } from "./utils/initializeSpotifySdk";
 
 declare global {
   interface Window {
@@ -20,7 +23,7 @@ declare global {
   }
 }
 
-type TPlayerState = {
+export type TPlayerState = {
   accessToken: string | null;
   trackList: SpotifyApi.UsersTopTracksResponse | null;
   player: Spotify.Player | null;
@@ -31,7 +34,7 @@ type TPlayerState = {
   isPlaying: boolean;
 };
 
-type TChooseResult = {
+export type TChooseResult = {
   isChoose: boolean;
   isCorrect: boolean;
 };
@@ -60,7 +63,7 @@ const Page = () => {
 
   const [searchString, setSearchString] = useState("");
   const [searchResultList, setSearchResultList] =
-    useState<SpotifyApi.TrackSearchResponse | null>();
+    useState<SpotifyApi.TrackSearchResponse | null>(null);
   const [chooseResult, setChooseResult] = useState<TChooseResult>(
     initialChooseResultValue
   );
@@ -81,51 +84,8 @@ const Page = () => {
         trackList,
       }));
 
-      //set up sdk
-      window.onSpotifyWebPlaybackSDKReady = () => {
-        const player = new window.Spotify.Player({
-          name: "Web playback SDK",
-          getOAuthToken: (cb: (token: string) => void) => {
-            cb(session?.access_token as string);
-          },
-        });
-        setPlayerState((prev) => ({
-          ...prev,
-          player,
-        }));
-
-        player.addListener("ready", ({ device_id }: { device_id: string }) => {
-          setPlayerState((prev) => ({
-            ...prev,
-            deviceId: device_id,
-          }));
-        });
-
-        player.connect().then((success) => {
-          if (success) {
-            console.log(
-              "The Web Playback SDK successfully connected to Spotify!"
-            );
-
-            setPlayerState((prev) => ({ ...prev, isReady: true }));
-          }
-        });
-      };
-
-      //apend sdk script AFTER setup sdk
-      const script = document.createElement("script");
-      script.src = "https://sdk.scdn.co/spotify-player.js";
-      script.async = true;
-
-      script.onload = () => {
-        console.log("Spotify Web Playback SDK script loaded successfully.");
-
-        setPlayerState((prev) => ({
-          ...prev,
-          sdkReady: true,
-        }));
-      };
-      document.body.appendChild(script);
+      //initialize spotify sdk
+      initializeSpotifySdk(session?.access_token as string, setPlayerState);
     };
     fetchData();
   }, []);
@@ -184,7 +144,8 @@ const Page = () => {
         accessToken,
         randomTrackDuration,
         deviceId as string,
-        player as Spotify.Player
+        player as Spotify.Player,
+        trackDuration
       );
     }
   };
@@ -224,13 +185,8 @@ const Page = () => {
       playerState.isReady &&
       playerState.sdkReady ? (
         <>
-          <div className="flex flex-col gap-3">
-            <button
-              onClick={handlePlayTrack}
-              className="bg-blue-500 w-56 h-20 hover:bg-blue-800 font-bold text-slate-300 text-lg border-none rounded-lg scale-100 hover:scale-95 transition-all"
-            >
-              Play
-            </button>
+          <div className="flex flex-col gap-3 justify-self-end">
+            <PlayButton handlePlayTrack={handlePlayTrack} />
             {playerState.isPlaying && (
               <input
                 type="search"
@@ -242,25 +198,10 @@ const Page = () => {
           </div>
 
           {playerState.isPlaying && (
-            <ul className="rounded-lg">
-              {searchResultList &&
-                searchResultList?.tracks.items.map((track, index) => (
-                  <li key={index}>
-                    <div
-                      className="w-56 h-14 bg-white px-2 border-slate-300  hover:bg-slate-300 transition-all"
-                      onClick={() =>
-                        handleChooseSearch(
-                          track.name,
-                          track.album.artists[0].name
-                        )
-                      }
-                    >
-                      <h1 className="font-bold text-md">{track.name}</h1>
-                      <p className="text-sm">{track.album.artists[0].name}</p>
-                    </div>
-                  </li>
-                ))}
-            </ul>
+            <SearchList
+              searchResultList={searchResultList}
+              handleChooseSearch={handleChooseSearch}
+            />
           )}
           {/* show correct text */}
           {chooseResult.isChoose && chooseResult.isCorrect && (
