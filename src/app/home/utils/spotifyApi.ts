@@ -2,8 +2,10 @@
 const playInterval = (duration: number, player: Spotify.Player) => {
   console.log("Playing in interval...");
   setTimeout(() => {
-    player.pause();
-  }, 3000);
+    player.pause().then(() => {
+      console.log("successfully paused!");
+    });
+  }, duration * 1000);
 };
 
 //getTrackDetailById
@@ -53,16 +55,20 @@ export const playTrackByUri = async (
     });
 
     if (response.ok) {
-      // Once the song is playing, call playInterval
-      // playInterval(10, player);
+      // Once the song is playing, call playInterval() function
       player.addListener("player_state_changed", (state) => {
-        console.log(state);
-        if (state && state.duration === duration && !state.loading) {
+        if (
+          state &&
+          state.duration === duration &&
+          state.position === position &&
+          !state.loading &&
+          !state.paused
+        ) {
           console.log(state);
 
           console.log("Track is now playing");
           // Once the song is playing, call playInterval
-          playInterval(3000, player);
+          playInterval(1, player);
           // Optionally, remove the event listener after it's no longer needed
           player.removeListener("player_state_changed");
         }

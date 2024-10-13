@@ -33,18 +33,31 @@ export const initializeSpotifySdk = (
     });
   };
 
-  //apend sdk script AFTER setup sdk
-  const script = document.createElement("script");
-  script.src = "https://sdk.scdn.co/spotify-player.js";
-  script.async = true;
+  // Check if the SDK script is already appended
+  const existingScript = document.querySelector(
+    'script[src="https://sdk.scdn.co/spotify-player.js"]'
+  );
 
-  script.onload = () => {
-    console.log("Spotify Web Playback SDK script loaded successfully.");
-
+  if (existingScript) {
+    console.log("Spotify Web Playback SDK script is already loaded.");
     setPlayerState((prev) => ({
       ...prev,
       sdkReady: true,
     }));
-  };
-  document.body.appendChild(script);
+    return;
+  } else {
+    // Append SDK script if it doesn't exist
+    const script = document.createElement("script");
+    script.src = "https://sdk.scdn.co/spotify-player.js";
+    script.async = true;
+
+    script.onload = () => {
+      console.log("Spotify Web Playback SDK script loaded successfully.");
+      setPlayerState((prev) => ({
+        ...prev,
+        sdkReady: true,
+      }));
+    };
+    document.body.appendChild(script);
+  }
 };
