@@ -2,13 +2,20 @@ import React from "react";
 
 const PlayButton = ({
   handlePlayTrack,
+  isPlaying,
 }: {
   handlePlayTrack: () => Promise<void>;
+  isPlaying: boolean;
 }) => {
   return (
     <button
       onClick={handlePlayTrack}
-      className="bg-blue-500 w-56 h-20 hover:bg-blue-800 font-bold text-slate-300 text-lg border-none rounded-lg scale-100 hover:scale-95 transition-all"
+      className={` w-56 h-20 font-bold text-slate-300 text-lg border-none rounded-lg scale-100  transition-all ${
+        isPlaying
+          ? "bg-blue-500"
+          : "bg-blue-800 hover:bg-blue-500 hover:scale-95"
+      }`}
+      disabled={isPlaying ? true : false}
     >
       Play
     </button>

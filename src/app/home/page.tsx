@@ -67,6 +67,7 @@ const Page = () => {
   const [chooseResult, setChooseResult] = useState<TChooseResult>(
     initialChooseResultValue
   );
+  const [score, setScore] = useState(0);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -167,61 +168,73 @@ const Page = () => {
       currentTrack.artists[0].name === artistName
     ) {
       setChooseResult((prev) => ({ ...prev, isCorrect: true, isChoose: true }));
+      //update score
+      setScore((prev) => prev + 1);
     } else {
       setChooseResult((prev) => ({
         ...prev,
         isCorrect: false,
         isChoose: true,
       }));
+      //update score
+      setScore((prev) => prev - 1);
     }
   };
 
   return (
-    <div className="h-screen w-screen flex flex-col justify-center items-center">
-      {playerState.accessToken &&
-      playerState.trackList &&
-      playerState.deviceId &&
-      playerState.player &&
-      playerState.isReady &&
-      playerState.sdkReady ? (
-        <>
-          <div className="flex flex-col gap-3 justify-self-end">
-            <PlayButton handlePlayTrack={handlePlayTrack} />
+    <>
+      <h1 className="text-lg text-white text-right p-10">Score: {score}</h1>
+      <div className="h-screen w-screen flex flex-col items-center">
+        {playerState.accessToken &&
+        playerState.trackList &&
+        playerState.deviceId &&
+        playerState.player &&
+        playerState.isReady &&
+        playerState.sdkReady ? (
+          <>
+            <div className="flex flex-col gap-3 justify-self-end">
+              <PlayButton
+                handlePlayTrack={handlePlayTrack}
+                isPlaying={playerState.isPlaying}
+              />
+              {playerState.isPlaying && (
+                <input
+                  type="search"
+                  placeholder="Enter your guess"
+                  className="p-5 rounded-lg"
+                  onChange={(e) => setSearchString(e.currentTarget.value)}
+                />
+              )}
+            </div>
+
+            {/* search result */}
             {playerState.isPlaying && (
-              <input
-                type="search"
-                placeholder="Enter your guess"
-                className="p-5 rounded-lg"
-                onChange={(e) => setSearchString(e.currentTarget.value)}
+              <SearchList
+                searchResultList={searchResultList}
+                handleChooseSearch={handleChooseSearch}
               />
             )}
-          </div>
 
-          {playerState.isPlaying && (
-            <SearchList
-              searchResultList={searchResultList}
-              handleChooseSearch={handleChooseSearch}
-            />
-          )}
-          {/* show correct text */}
-          {chooseResult.isChoose && chooseResult.isCorrect && (
-            <h1 className="text-lg text-green-600">Correct!</h1>
-          )}
-          {/* show incorrect text */}
-          {chooseResult.isChoose && !chooseResult.isCorrect && (
-            <>
-              <h1 className="text-lg text-red-600">Incorrect!</h1>
-              <h2 className="text-lg text-red-600">
-                Correct answer is {playerState.currentTrack?.name} by{" "}
-                {playerState.currentTrack?.album.artists[0].name}
-              </h2>
-            </>
-          )}
-        </>
-      ) : (
-        <p className="font-bold text-slate-300 text-lg">Loading...</p>
-      )}
-    </div>
+            {/* show correct text */}
+            {chooseResult.isChoose && chooseResult.isCorrect && (
+              <h1 className="text-lg text-green-600">Correct!</h1>
+            )}
+            {/* show incorrect text */}
+            {chooseResult.isChoose && !chooseResult.isCorrect && (
+              <>
+                <h1 className="text-lg text-red-600">Incorrect!</h1>
+                <h2 className="text-lg text-red-600">
+                  Correct answer is {playerState.currentTrack?.name} by{" "}
+                  {playerState.currentTrack?.album.artists[0].name}
+                </h2>
+              </>
+            )}
+          </>
+        ) : (
+          <p className="font-bold text-slate-300 text-lg">Loading...</p>
+        )}
+      </div>
+    </>
   );
 };
 
