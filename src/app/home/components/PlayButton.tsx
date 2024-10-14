@@ -17,7 +17,7 @@ const PlayButton = ({
       }`}
       disabled={isPlaying ? true : false}
     >
-      Play
+      {isPlaying ? "Playing..." : "Play"}
     </button>
   );
 };

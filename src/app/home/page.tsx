@@ -68,6 +68,7 @@ const Page = () => {
     initialChooseResultValue
   );
   const [score, setScore] = useState(0);
+  const [preloadImage, setPreloadImage] = useState("");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -107,12 +108,23 @@ const Page = () => {
     fetchData();
   }, [searchString]);
 
+  useEffect(() => {
+    if (playerState.currentTrack) {
+      const img = new Image();
+      img.src = playerState.currentTrack.album.images[0].url;
+      img.onload = () => setPreloadImage(img.src);
+    }
+  }, [playerState.currentTrack]);
+
   //handle play track at random time
   const handlePlayTrack = async () => {
     const { accessToken, trackList, deviceId, isReady, sdkReady, player } =
       playerState;
 
     if (accessToken && trackList && deviceId && isReady && sdkReady && player) {
+      //pause previous track if currently play
+      player.pause();
+
       //reset choosing state
       setChooseResult((prev) => ({
         ...prev,
@@ -160,8 +172,9 @@ const Page = () => {
     //reset search state
     setSearchString("");
 
-    //pause the track
+    //pause the track & play
     player?.pause();
+    player?.togglePlay();
 
     if (
       currentTrack?.name === songName &&
@@ -183,16 +196,16 @@ const Page = () => {
 
   return (
     <>
-      <h1 className="text-lg text-white text-right p-10">Score: {score}</h1>
-      <div className="h-screen w-screen flex flex-col items-center">
-        {playerState.accessToken &&
-        playerState.trackList &&
-        playerState.deviceId &&
-        playerState.player &&
-        playerState.isReady &&
-        playerState.sdkReady ? (
-          <>
-            <div className="flex flex-col gap-3 justify-self-end">
+      {playerState.accessToken &&
+      playerState.trackList &&
+      playerState.deviceId &&
+      playerState.player &&
+      playerState.isReady &&
+      playerState.sdkReady ? (
+        <>
+          <h1 className="text-lg text-white text-right p-10">Score: {score}</h1>
+          <div className="h-screen w-screen flex flex-col items-center">
+            <div className="flex flex-col gap-3">
               <PlayButton
                 handlePlayTrack={handlePlayTrack}
                 isPlaying={playerState.isPlaying}
@@ -215,25 +228,44 @@ const Page = () => {
               />
             )}
 
+            {/* show track detail */}
+            {chooseResult.isChoose && (
+              <div className="my-14">
+                <div className="h-60 w-60">
+                  <img
+                    src={preloadImage}
+                    alt="track images"
+                    className="rounded-md"
+                  />
+                  <h1 className="text-2xl text-white text-center font-bold">
+                    {playerState.currentTrack?.name}
+                  </h1>
+                  <p className="text-lg text-white text-center italic">
+                    {playerState.currentTrack?.artists[0].name}
+                  </p>
+                </div>
+              </div>
+            )}
+
             {/* show correct text */}
             {chooseResult.isChoose && chooseResult.isCorrect && (
-              <h1 className="text-lg text-green-600">Correct!</h1>
+              <h1 className="text-4xl font-bold text-green-600 my-10">
+                Correct!
+              </h1>
             )}
             {/* show incorrect text */}
             {chooseResult.isChoose && !chooseResult.isCorrect && (
               <>
-                <h1 className="text-lg text-red-600">Incorrect!</h1>
-                <h2 className="text-lg text-red-600">
-                  Correct answer is {playerState.currentTrack?.name} by{" "}
-                  {playerState.currentTrack?.album.artists[0].name}
-                </h2>
+                <h1 className="text-4xl text-red-600 my-10">Incorrect!</h1>
               </>
             )}
-          </>
-        ) : (
-          <p className="font-bold text-slate-300 text-lg">Loading...</p>
-        )}
-      </div>
+          </div>
+        </>
+      ) : (
+        <div className="h-screen w-screen flex flex-col items-center">
+          <p className="font-bold text-slate-300 text-lg mt-32">Loading...</p>
+        </div>
+      )}
     </>
   );
 };

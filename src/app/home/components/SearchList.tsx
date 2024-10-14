@@ -8,12 +8,20 @@ const SearchList = ({
   handleChooseSearch: (trackName: string, artistName: string) => void;
 }) => {
   return (
-    <ul className="rounded-lg">
+    <ul>
       {searchResultList &&
         searchResultList?.tracks.items.map((track, index) => (
           <li key={index}>
             <div
-              className="w-56 h-14 bg-white px-2 border-slate-300  hover:bg-slate-300 transition-all"
+              className={`w-56 min-h-14 bg-white px-2 border-b ${
+                index !== searchResultList?.tracks.items.length - 1 &&
+                "border-b-slate-500"
+              } hover:bg-slate-300 transition-all ${
+                index === 0 && "rounded-t-md"
+              } ${
+                index === searchResultList?.tracks.items.length - 1 &&
+                "rounded-b-md"
+              }`}
               onClick={() =>
                 handleChooseSearch(track.name, track.album.artists[0].name)
               }
