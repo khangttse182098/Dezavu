@@ -1,11 +1,11 @@
 //TODO: Visual progress bar
-//TODO: play small part of song
+//TODO: Regenerate access token when expired
 
 "use client";
 
 import { randomize } from "@/utils/randomize";
 import { getSession } from "next-auth/react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   getMostListenedTrackList,
   getTrackDetailById,
@@ -15,6 +15,8 @@ import {
 import PlayButton from "./components/PlayButton";
 import SearchList from "./components/SearchList";
 import { initializeSpotifySdk } from "./utils/initializeSpotifySdk";
+import TrackDetails from "./components/TrackDetails";
+import LoseModal from "./components/LoseModal";
 
 declare global {
   interface Window {
@@ -37,6 +39,14 @@ export type TPlayerState = {
 export type TChooseResult = {
   isChoose: boolean;
   isCorrect: boolean;
+};
+
+export type TLoseModalProps = {
+  highScore: number;
+  songName: string;
+  artistName: string;
+  image: string;
+  handlePlayAgain: () => void;
 };
 
 const initialPlayerStateValue = {
@@ -69,6 +79,9 @@ const Page = () => {
   );
   const [score, setScore] = useState(0);
   const [preloadImage, setPreloadImage] = useState("");
+  const modalRef = useRef<HTMLDialogElement | null>(null);
+  const [highestScore, setHighestScore] = useState(0);
+  const [isLose, setIsLose] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -108,6 +121,7 @@ const Page = () => {
     fetchData();
   }, [searchString]);
 
+  //load image in advance
   useEffect(() => {
     if (playerState.currentTrack) {
       const img = new Image();
@@ -132,9 +146,6 @@ const Page = () => {
         isChoose: false,
       }));
 
-      //set isPlay to true (use to show the search bar or not)
-      setPlayerState((prev) => ({ ...prev, isPlaying: true }));
-
       //get random track's id
       const trackNumber = randomize(trackList.items.length as number);
       const trackId = trackList.items[trackNumber].id;
@@ -158,6 +169,7 @@ const Page = () => {
         randomTrackDuration,
         deviceId as string,
         player as Spotify.Player,
+        setPlayerState,
         trackDuration
       );
     }
@@ -176,6 +188,7 @@ const Page = () => {
     player?.pause();
     player?.togglePlay();
 
+    //if user choose correct search result
     if (
       currentTrack?.name === songName &&
       currentTrack.artists[0].name === artistName
@@ -183,6 +196,13 @@ const Page = () => {
       setChooseResult((prev) => ({ ...prev, isCorrect: true, isChoose: true }));
       //update score
       setScore((prev) => prev + 1);
+
+      //check if score is new high score
+      {
+        highestScore < score + 1 && setHighestScore(score + 1);
+      }
+
+      //if user didn't choose the correct awnser
     } else {
       setChooseResult((prev) => ({
         ...prev,
@@ -190,8 +210,23 @@ const Page = () => {
         isChoose: true,
       }));
       //update score
-      setScore((prev) => prev - 1);
+      const updatedScore = score - 1;
+      setScore(updatedScore);
+
+      //showing losing screen
+      if (updatedScore <= 0) {
+        modalRef.current?.setAttribute("open", "true");
+        player?.pause();
+        setIsLose(true);
+      }
     }
+  };
+
+  const handlePlayAgain = () => {
+    setIsLose(false);
+    setScore(0);
+    setHighestScore(0);
+    modalRef.current?.removeAttribute("open");
   };
 
   return (
@@ -203,23 +238,36 @@ const Page = () => {
       playerState.isReady &&
       playerState.sdkReady ? (
         <>
-          <h1 className="text-lg text-white text-right p-10">Score: {score}</h1>
-          <div className="h-screen w-screen flex flex-col items-center">
-            <div className="flex flex-col gap-3">
-              <PlayButton
-                handlePlayTrack={handlePlayTrack}
-                isPlaying={playerState.isPlaying}
-              />
-              {playerState.isPlaying && (
-                <input
-                  type="search"
-                  placeholder="Enter your guess"
-                  className="p-5 rounded-lg"
-                  onChange={(e) => setSearchString(e.currentTarget.value)}
+          {!isLose && (
+            <h1 className="text-2xl text-white font-bold text-center p-10">
+              Score: {score}
+            </h1>
+          )}
+          <div className="flex flex-col items-center">
+            <LoseModal
+              songName={playerState.currentTrack?.name as string}
+              artistName={playerState.currentTrack?.artists[0].name as string}
+              highScore={highestScore}
+              image={preloadImage}
+              handlePlayAgain={handlePlayAgain}
+              ref={modalRef}
+            />
+            {!isLose && (
+              <div className="flex flex-col gap-3">
+                <PlayButton
+                  handlePlayTrack={handlePlayTrack}
+                  isPlaying={playerState.isPlaying}
                 />
-              )}
-            </div>
-
+                {playerState.isPlaying && (
+                  <input
+                    type="search"
+                    placeholder="Enter your guess"
+                    className="p-5 rounded-lg"
+                    onChange={(e) => setSearchString(e.currentTarget.value)}
+                  />
+                )}
+              </div>
+            )}
             {/* search result */}
             {playerState.isPlaying && (
               <SearchList
@@ -229,7 +277,7 @@ const Page = () => {
             )}
 
             {/* show track detail */}
-            {chooseResult.isChoose && (
+            {chooseResult.isChoose && score > 0 && (
               <div className="my-14">
                 <div className="h-60 w-60">
                   <img
@@ -254,7 +302,7 @@ const Page = () => {
               </h1>
             )}
             {/* show incorrect text */}
-            {chooseResult.isChoose && !chooseResult.isCorrect && (
+            {chooseResult.isChoose && !chooseResult.isCorrect && score > 0 && (
               <>
                 <h1 className="text-4xl text-red-600 my-10">Incorrect!</h1>
               </>

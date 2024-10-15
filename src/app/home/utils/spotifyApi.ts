@@ -1,3 +1,5 @@
+import { TPlayerState } from "../page";
+
 //play the song for x seconds
 const playInterval = (duration: number, player: Spotify.Player) => {
   console.log("Playing in interval...");
@@ -37,6 +39,7 @@ export const playTrackByUri = async (
   position: number,
   deviceId: string,
   player: Spotify.Player,
+  setPlayerState: React.Dispatch<React.SetStateAction<TPlayerState>>,
   duration: number
 ) => {
   const url = `${process.env.NEXT_PUBLIC_SPOTIFY_API_BASE_URL}/me/player/play/?device_id=${deviceId}`;
@@ -67,6 +70,10 @@ export const playTrackByUri = async (
           console.log(state);
 
           console.log("Track is now playing");
+
+          //set isPlaying to true (use to show the search bar or not)
+          setPlayerState((prev) => ({ ...prev, isPlaying: true }));
+
           // Once the song is playing, call playInterval
           playInterval(1, player);
           // Optionally, remove the event listener after it's no longer needed
