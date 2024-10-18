@@ -34,6 +34,8 @@ export type TPlayerState = {
   sdkReady: boolean;
   currentTrack: SpotifyApi.SingleTrackResponse | null;
   isPlaying: boolean;
+  isPausing: boolean;
+  isClicked: boolean;
 };
 
 export type TChooseResult = {
@@ -58,6 +60,8 @@ const initialPlayerStateValue = {
   sdkReady: false,
   currentTrack: null,
   isPlaying: false,
+  isPausing: false,
+  isClicked: false,
 };
 
 const initialChooseResultValue = {
@@ -145,6 +149,9 @@ const Page = () => {
         isCorrect: false,
         isChoose: false,
       }));
+
+      //set isClicked to true
+      setPlayerState((prev) => ({ ...prev, isClicked: true }));
 
       //get random track's id
       const trackNumber = randomize(trackList.items.length as number);
@@ -257,6 +264,8 @@ const Page = () => {
                 <PlayButton
                   handlePlayTrack={handlePlayTrack}
                   isPlaying={playerState.isPlaying}
+                  isPausing={playerState.isPausing}
+                  isClicked={playerState.isClicked}
                 />
                 {playerState.isPlaying && (
                   <input
@@ -268,6 +277,7 @@ const Page = () => {
                 )}
               </div>
             )}
+
             {/* search result */}
             {playerState.isPlaying && (
               <SearchList
@@ -276,23 +286,23 @@ const Page = () => {
               />
             )}
 
+            {/* progress bar */}
+            {playerState.isPlaying && (
+              <progress
+                value="10"
+                max="100"
+                className="[&::-webkit-progress-bar]:rounded-md [&::-webkit-progress-bar]:bg-white [&::-webkit-progress-value]:rounded-md [&::-webkit-progress-value]:bg-blue-500 h-3 w-56 mt-14"
+              ></progress>
+            )}
+
             {/* show track detail */}
             {chooseResult.isChoose && score > 0 && (
-              <div className="my-14">
-                <div className="h-60 w-60">
-                  <img
-                    src={preloadImage}
-                    alt="track images"
-                    className="rounded-md"
-                  />
-                  <h1 className="text-2xl text-white text-center font-bold">
-                    {playerState.currentTrack?.name}
-                  </h1>
-                  <p className="text-lg text-white text-center italic">
-                    {playerState.currentTrack?.artists[0].name}
-                  </p>
-                </div>
-              </div>
+              <TrackDetails
+                songName={playerState.currentTrack?.name as string}
+                artistName={playerState.currentTrack?.artists[0].name as string}
+                image={preloadImage}
+                isBig={true}
+              />
             )}
 
             {/* show correct text */}

@@ -20,6 +20,7 @@ const LoseModal = forwardRef<HTMLDialogElement, TLoseModalProps>(
             songName={songName}
             artistName={artistName}
             image={image}
+            isBig={false}
           />
           <button
             className="w-28 h-14 rounded-md bg-green-600 hover:bg-green-700 text-lg font-bold text-slate-950 transition-all mt-20"
