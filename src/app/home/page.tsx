@@ -21,6 +21,7 @@ import LoseModal from "./components/LoseModal";
 import PlayerWrapper from "./components/PlayerWrapper";
 import Score from "./components/Score";
 import SearchInput from "./components/SearchInput";
+import Result from "./components/Result";
 
 declare global {
   interface Window {
@@ -261,68 +262,57 @@ const Page = () => {
 
   return (
     <PlayerWrapper playerState={playerState}>
-      <>
-        <Score isLose={isLose} score={score} />
-        <div className="flex flex-col items-center">
-          <LoseModal
-            songName={playerState.currentTrack?.name as string}
-            artistName={playerState.currentTrack?.artists[0].name as string}
-            highScore={highestScore}
-            image={preloadImage}
-            handlePlayAgain={handlePlayAgain}
-            ref={modalRef}
-          />
-          {!isLose && (
-            <div className="flex flex-col gap-3">
-              <PlayButton
-                handlePlayTrack={handlePlayTrack}
-                handleContinueTrack={handleContinueTrack}
-                playerState={playerState}
-              />
-              <SearchInput
-                playerState={playerState}
-                setSearchString={setSearchString}
-              />
-            </div>
-          )}
+      <Score isLose={isLose} score={score} />
 
-          {/* search result */}
-          <SearchList
-            searchResultList={searchResultList}
-            handleChooseSearch={handleChooseSearch}
-          />
-
-          {/* progress bar */}
-          <progress
-            value="10"
-            max="100"
-            className="[&::-webkit-progress-bar]:rounded-md [&::-webkit-progress-bar]:bg-white [&::-webkit-progress-value]:rounded-md [&::-webkit-progress-value]:bg-blue-500 h-3 w-56 mt-14"
-          />
-
-          {/* show track detail */}
-          {chooseResult.isChoose && score > 0 && (
-            <TrackDetails
-              songName={playerState.currentTrack?.name as string}
-              artistName={playerState.currentTrack?.artists[0].name as string}
-              image={preloadImage}
-              isBig={true}
+      <div className="flex flex-col items-center">
+        <LoseModal
+          songName={playerState.currentTrack?.name as string}
+          artistName={playerState.currentTrack?.artists[0].name as string}
+          highScore={highestScore}
+          image={preloadImage}
+          handlePlayAgain={handlePlayAgain}
+          ref={modalRef}
+        />
+        {!isLose && (
+          <div className="flex flex-col gap-3">
+            <PlayButton
+              handlePlayTrack={handlePlayTrack}
+              handleContinueTrack={handleContinueTrack}
+              playerState={playerState}
             />
-          )}
+            <SearchInput
+              playerState={playerState}
+              setSearchString={setSearchString}
+            />
+          </div>
+        )}
 
-          {/* show correct text */}
-          {chooseResult.isChoose && chooseResult.isCorrect && (
-            <h1 className="text-4xl font-bold text-green-600 my-10">
-              Correct!
-            </h1>
-          )}
-          {/* show incorrect text */}
-          {chooseResult.isChoose && !chooseResult.isCorrect && score > 0 && (
-            <>
-              <h1 className="text-4xl text-red-600 my-10">Incorrect!</h1>
-            </>
-          )}
-        </div>
-      </>
+        {/* search result */}
+        <SearchList
+          searchResultList={searchResultList}
+          handleChooseSearch={handleChooseSearch}
+        />
+
+        {/* progress bar */}
+        <progress
+          value="10"
+          max="100"
+          className="[&::-webkit-progress-bar]:rounded-md [&::-webkit-progress-bar]:bg-white [&::-webkit-progress-value]:rounded-md [&::-webkit-progress-value]:bg-blue-500 h-3 w-56 mt-14"
+        />
+
+        {/* show track detail */}
+        <TrackDetails
+          songName={playerState.currentTrack?.name as string}
+          artistName={playerState.currentTrack?.artists[0].name as string}
+          image={preloadImage}
+          isBig={true}
+          chooseResult={chooseResult}
+          score={score}
+        />
+
+        {/* show result */}
+        <Result chooseResult={chooseResult} score={score} />
+      </div>
     </PlayerWrapper>
   );
 };
