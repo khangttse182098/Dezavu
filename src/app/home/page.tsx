@@ -9,6 +9,7 @@ import { useEffect, useRef, useState } from "react";
 import {
   getMostListenedTrackList,
   getTrackDetailById,
+  playInterval,
   playTrackByUri,
   searchTracks,
 } from "./utils/spotifyApi";
@@ -17,6 +18,9 @@ import SearchList from "./components/SearchList";
 import { initializeSpotifySdk } from "./utils/initializeSpotifySdk";
 import TrackDetails from "./components/TrackDetails";
 import LoseModal from "./components/LoseModal";
+import PlayerWrapper from "./components/PlayerWrapper";
+import Score from "./components/Score";
+import SearchInput from "./components/SearchInput";
 
 declare global {
   interface Window {
@@ -36,6 +40,7 @@ export type TPlayerState = {
   isPlaying: boolean;
   isPausing: boolean;
   isClicked: boolean;
+  isContinue: boolean;
 };
 
 export type TChooseResult = {
@@ -62,6 +67,7 @@ const initialPlayerStateValue = {
   isPlaying: false,
   isPausing: false,
   isClicked: false,
+  isContinue: false,
 };
 
 const initialChooseResultValue = {
@@ -134,6 +140,18 @@ const Page = () => {
     }
   }, [playerState.currentTrack]);
 
+  //handle continue playing track
+  const handleContinueTrack = async () => {
+    const { player } = playerState;
+    player?.togglePlay();
+    player?.addListener("player_state_changed", (state) => {
+      if (state && !state.loading && !state.paused) {
+        setPlayerState((prev) => ({ ...prev, isPlaying: true }));
+        playInterval(2, playerState.player as Spotify.Player, setPlayerState);
+      }
+    });
+  };
+
   //handle play track at random time
   const handlePlayTrack = async () => {
     const { accessToken, trackList, deviceId, isReady, sdkReady, player } =
@@ -166,7 +184,12 @@ const Page = () => {
       const trackDetail = await getTrackDetailById(accessToken, trackId);
       setPlayerState((prev) => ({ ...prev, currentTrack: trackDetail }));
       const trackDuration = trackDetail.duration_ms;
-      const randomTrackDuration = randomize(trackDuration);
+
+      //subtract 30s from the end
+      const subtractedTrackTime = trackDuration - 30000;
+
+      //get random track duration
+      const randomTrackDuration = randomize(subtractedTrackTime);
       console.log(`RandomTrackDuration: ${randomTrackDuration}`);
 
       // play the track
@@ -237,94 +260,70 @@ const Page = () => {
   };
 
   return (
-    <>
-      {playerState.accessToken &&
-      playerState.trackList &&
-      playerState.deviceId &&
-      playerState.player &&
-      playerState.isReady &&
-      playerState.sdkReady ? (
-        <>
+    <PlayerWrapper playerState={playerState}>
+      <>
+        <Score isLose={isLose} score={score} />
+        <div className="flex flex-col items-center">
+          <LoseModal
+            songName={playerState.currentTrack?.name as string}
+            artistName={playerState.currentTrack?.artists[0].name as string}
+            highScore={highestScore}
+            image={preloadImage}
+            handlePlayAgain={handlePlayAgain}
+            ref={modalRef}
+          />
           {!isLose && (
-            <h1 className="text-2xl text-white font-bold text-center p-10">
-              Score: {score}
-            </h1>
+            <div className="flex flex-col gap-3">
+              <PlayButton
+                handlePlayTrack={handlePlayTrack}
+                handleContinueTrack={handleContinueTrack}
+                playerState={playerState}
+              />
+              <SearchInput
+                playerState={playerState}
+                setSearchString={setSearchString}
+              />
+            </div>
           )}
-          <div className="flex flex-col items-center">
-            <LoseModal
+
+          {/* search result */}
+          <SearchList
+            searchResultList={searchResultList}
+            handleChooseSearch={handleChooseSearch}
+          />
+
+          {/* progress bar */}
+          <progress
+            value="10"
+            max="100"
+            className="[&::-webkit-progress-bar]:rounded-md [&::-webkit-progress-bar]:bg-white [&::-webkit-progress-value]:rounded-md [&::-webkit-progress-value]:bg-blue-500 h-3 w-56 mt-14"
+          />
+
+          {/* show track detail */}
+          {chooseResult.isChoose && score > 0 && (
+            <TrackDetails
               songName={playerState.currentTrack?.name as string}
               artistName={playerState.currentTrack?.artists[0].name as string}
-              highScore={highestScore}
               image={preloadImage}
-              handlePlayAgain={handlePlayAgain}
-              ref={modalRef}
+              isBig={true}
             />
-            {!isLose && (
-              <div className="flex flex-col gap-3">
-                <PlayButton
-                  handlePlayTrack={handlePlayTrack}
-                  isPlaying={playerState.isPlaying}
-                  isPausing={playerState.isPausing}
-                  isClicked={playerState.isClicked}
-                />
-                {playerState.isPlaying && (
-                  <input
-                    type="search"
-                    placeholder="Enter your guess"
-                    className="p-5 rounded-lg"
-                    onChange={(e) => setSearchString(e.currentTarget.value)}
-                  />
-                )}
-              </div>
-            )}
+          )}
 
-            {/* search result */}
-            {playerState.isPlaying && (
-              <SearchList
-                searchResultList={searchResultList}
-                handleChooseSearch={handleChooseSearch}
-              />
-            )}
-
-            {/* progress bar */}
-            {playerState.isPlaying && (
-              <progress
-                value="10"
-                max="100"
-                className="[&::-webkit-progress-bar]:rounded-md [&::-webkit-progress-bar]:bg-white [&::-webkit-progress-value]:rounded-md [&::-webkit-progress-value]:bg-blue-500 h-3 w-56 mt-14"
-              ></progress>
-            )}
-
-            {/* show track detail */}
-            {chooseResult.isChoose && score > 0 && (
-              <TrackDetails
-                songName={playerState.currentTrack?.name as string}
-                artistName={playerState.currentTrack?.artists[0].name as string}
-                image={preloadImage}
-                isBig={true}
-              />
-            )}
-
-            {/* show correct text */}
-            {chooseResult.isChoose && chooseResult.isCorrect && (
-              <h1 className="text-4xl font-bold text-green-600 my-10">
-                Correct!
-              </h1>
-            )}
-            {/* show incorrect text */}
-            {chooseResult.isChoose && !chooseResult.isCorrect && score > 0 && (
-              <>
-                <h1 className="text-4xl text-red-600 my-10">Incorrect!</h1>
-              </>
-            )}
-          </div>
-        </>
-      ) : (
-        <div className="h-screen w-screen flex flex-col items-center">
-          <p className="font-bold text-slate-300 text-lg mt-32">Loading...</p>
+          {/* show correct text */}
+          {chooseResult.isChoose && chooseResult.isCorrect && (
+            <h1 className="text-4xl font-bold text-green-600 my-10">
+              Correct!
+            </h1>
+          )}
+          {/* show incorrect text */}
+          {chooseResult.isChoose && !chooseResult.isCorrect && score > 0 && (
+            <>
+              <h1 className="text-4xl text-red-600 my-10">Incorrect!</h1>
+            </>
+          )}
         </div>
-      )}
-    </>
+      </>
+    </PlayerWrapper>
   );
 };
 

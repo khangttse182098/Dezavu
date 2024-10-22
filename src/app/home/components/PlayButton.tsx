@@ -1,20 +1,20 @@
 import React from "react";
+import { TPlayerState } from "../page";
 
 const PlayButton = ({
   handlePlayTrack,
-  isPlaying,
-  isPausing,
-  isClicked,
+  handleContinueTrack,
+  playerState,
 }: {
   handlePlayTrack: () => Promise<void>;
-  isPlaying: boolean;
-  isPausing: boolean;
-  isClicked: boolean;
+  handleContinueTrack: () => Promise<void>;
+  playerState: TPlayerState;
 }) => {
+  const { isContinue, isPlaying, isPausing, isClicked } = playerState;
   return (
     <>
       {/* start playing */}
-      {!isPausing && (
+      {!isContinue && (
         <button
           onClick={handlePlayTrack}
           className={` w-56 h-20 font-bold text-slate-300 text-lg border-none rounded-lg scale-100  transition-all ${
@@ -31,9 +31,9 @@ const PlayButton = ({
       )}
 
       {/* continue button */}
-      {isPlaying && isPausing && (
+      {isContinue && (
         <button
-          onClick={handlePlayTrack}
+          onClick={handleContinueTrack}
           className={
             "w-56 h-20 font-bold text-white text-lg border-none rounded-lg scale-100 transition-all  bg-green-500 hover:bg-green-800 hover:scale-95"
           }

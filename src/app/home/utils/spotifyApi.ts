@@ -1,7 +1,7 @@
 import { TPlayerState } from "../page";
 
 //play the song for x seconds
-const playInterval = (
+export const playInterval = (
   duration: number,
   player: Spotify.Player,
   setPlayerState: React.Dispatch<React.SetStateAction<TPlayerState>>
@@ -10,7 +10,14 @@ const playInterval = (
   setTimeout(() => {
     player.pause().then(() => {
       console.log("successfully paused!");
+      //set isPause to true
       setPlayerState((prev) => ({ ...prev, isPausing: true }));
+
+      //set isPlaying to false
+      setPlayerState((prev) => ({ ...prev, isPlaying: false }));
+
+      //set isContinue to true
+      setPlayerState((prev) => ({ ...prev, isContinue: true }));
     });
   }, duration * 1000);
 };
