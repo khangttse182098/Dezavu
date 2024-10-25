@@ -51,6 +51,7 @@ export const playTrackByUri = async (
   position: number,
   deviceId: string,
   player: Spotify.Player,
+  songInterval: number,
   setPlayerState: React.Dispatch<React.SetStateAction<TPlayerState>>,
   duration: number
 ) => {
@@ -90,7 +91,7 @@ export const playTrackByUri = async (
           setPlayerState((prev) => ({ ...prev, isClicked: false }));
 
           // Once the song is playing, call playInterval
-          playInterval(1, player, setPlayerState);
+          playInterval(songInterval, player, setPlayerState);
           // Optionally, remove the event listener after it's no longer needed
           player.removeListener("player_state_changed");
         }

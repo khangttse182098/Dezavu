@@ -16,6 +16,7 @@ const initialPlayerStateValue = {
   isPausing: false,
   isClicked: false,
   isContinue: false,
+  songInterval: 1,
 };
 
 export const useSpotifyPlayer = () => {

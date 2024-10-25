@@ -1,15 +1,6 @@
-//TODO: Visual progress bar
-//TODO: Regenerate access token when expired
-
 "use client";
 
-import { randomize } from "@/utils/randomize";
-import { useEffect, useRef, useState } from "react";
-import {
-  getTrackDetailById,
-  playInterval,
-  playTrackByUri,
-} from "./utils/spotifyApi";
+import { useRef, useState } from "react";
 import PlayButton from "./components/PlayButton";
 import SearchList from "./components/SearchList";
 import TrackDetails from "./components/TrackDetails";
@@ -26,13 +17,6 @@ import { handleContinueTrack, handlePlayTrack } from "./utils/spotifyLogic";
 import ProgressBar from "./components/ProgressBar";
 import useDebounce from "@/hooks/useDebounce";
 
-declare global {
-  interface Window {
-    onSpotifyWebPlaybackSDKReady: () => void;
-    Spotify: typeof Spotify;
-  }
-}
-
 const initialChooseResultValue = {
   isChoose: false,
   isCorrect: false,
@@ -46,9 +30,9 @@ const Page = () => {
     initialChooseResultValue
   );
   const [score, setScore] = useState(0);
-  const modalRef = useRef<HTMLDialogElement | null>(null);
   const [highestScore, setHighestScore] = useState(0);
   const [isLose, setIsLose] = useState(false);
+  const modalRef = useRef<HTMLDialogElement | null>(null);
 
   // get player state
   const { playerState, setPlayerState } = useSpotifyPlayer();
@@ -112,10 +96,19 @@ const Page = () => {
   };
 
   const handlePlayAgain = () => {
+    //reset isLost state back to false
     setIsLose(false);
+
+    //reset score back to 0
     setScore(0);
+
+    //reset highestScore back to 0
     setHighestScore(0);
+
+    //remove loseModal visibility state
     modalRef.current?.removeAttribute("open");
+
+    //play the next track
     handlePlayTrack(playerState, setPlayerState, setChooseResult);
   };
 
@@ -162,7 +155,10 @@ const Page = () => {
         />
 
         {/* progress bar */}
-        <ProgressBar chooseResult={chooseResult} />
+        <ProgressBar
+          chooseResult={chooseResult}
+          songInterval={playerState.songInterval}
+        />
 
         {/* show track detail */}
         <TrackDetails

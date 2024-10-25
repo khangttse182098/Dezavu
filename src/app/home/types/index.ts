@@ -1,3 +1,10 @@
+declare global {
+  interface Window {
+    onSpotifyWebPlaybackSDKReady: () => void;
+    Spotify: typeof Spotify;
+  }
+}
+
 export type TPlayerState = {
   accessToken: string | null;
   trackList: SpotifyApi.UsersTopTracksResponse | null;
@@ -10,6 +17,14 @@ export type TPlayerState = {
   isPausing: boolean;
   isClicked: boolean;
   isContinue: boolean;
+  songInterval: number;
+};
+
+export type TGameState = {
+  numberOfAttempt: number;
+  score: number;
+  highestScore: number;
+  isLose: boolean;
 };
 
 export type TChooseResult = {

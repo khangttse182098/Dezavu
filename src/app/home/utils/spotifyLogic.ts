@@ -3,21 +3,49 @@ import { TChooseResult, TPlayerState } from "../types";
 import { getTrackDetailById, playInterval, playTrackByUri } from "./spotifyApi";
 import { randomize } from "@/utils/randomize";
 
+export const handleChangeSongInterval = (songInterval: number) => {
+  if (songInterval === 1) {
+    return 2;
+  } else if (songInterval === 2) {
+    return 5;
+  } else if (songInterval === 5) {
+    return 8;
+  } else if (songInterval === 8) {
+    return 14;
+  }
+};
+
 export const handleContinueTrack = async (
   playerState: TPlayerState,
   setPlayerState: Dispatch<SetStateAction<TPlayerState>>
 ) => {
-  const { player } = playerState;
-  player?.togglePlay();
-  player?.addListener("player_state_changed", (state) => {
-    if (state && !state.loading && !state.paused) {
-      setPlayerState((prev) => ({ ...prev, isPlaying: true }));
-      playInterval(2, playerState.player as Spotify.Player, setPlayerState);
+  const { player, songInterval } = playerState;
 
-      //remove player state changed listener
-      player.removeListener("player_state_changed");
-    }
-  });
+  //check if this is the last time we should increment songInterval
+  if (songInterval < 14) {
+    //get new songInterval
+    const newSongInterval = handleChangeSongInterval(songInterval);
+    player?.togglePlay();
+    player?.addListener("player_state_changed", (state) => {
+      if (state && !state.loading && !state.paused) {
+        setPlayerState((prev) => ({ ...prev, isPlaying: true }));
+        playInterval(
+          newSongInterval as number,
+          playerState.player as Spotify.Player,
+          setPlayerState
+        );
+
+        //update songInterval state
+        setPlayerState((prev) => ({
+          ...prev,
+          songInterval: newSongInterval as number,
+        }));
+
+        //remove player state changed listener
+        player.removeListener("player_state_changed");
+      }
+    });
+  }
 };
 
 export const handlePlayTrack = async (
@@ -70,6 +98,7 @@ export const handlePlayTrack = async (
       randomTrackDuration,
       deviceId as string,
       player as Spotify.Player,
+      playerState.songInterval,
       setPlayerState,
       trackDuration
     );
