@@ -1,6 +1,6 @@
 import React from "react";
 
-const Score = ({ isLose, score }: { isLose: boolean; score: number }) => {
+const GameScore = ({ isLose, score }: { isLose: boolean; score: number }) => {
   return (
     <>
       {!isLose && (
@@ -12,4 +12,4 @@ const Score = ({ isLose, score }: { isLose: boolean; score: number }) => {
   );
 };
 
-export default Score;
+export default GameScore;

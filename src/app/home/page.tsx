@@ -6,16 +6,21 @@ import SearchList from "./components/SearchList";
 import TrackDetails from "./components/TrackDetails";
 import LoseModal from "./components/LoseModal";
 import PlayerWrapper from "./components/PlayerWrapper";
-import Score from "./components/Score";
+import GameScore from "./components/Score";
 import SearchInput from "./components/SearchInput";
 import Result from "./components/Result";
 import { useSearch } from "./hooks/useSearch";
 import { useSpotifyPlayer } from "./hooks/useSpotifyPlayer";
 import { TChooseResult } from "./types";
 import { usePreloadImage } from "./hooks/usePreloadImage";
-import { handleContinueTrack, handlePlayTrack } from "./utils/spotifyLogic";
+import {
+  changeScore,
+  handleContinueTrack,
+  handlePlayTrack,
+} from "./utils/spotifyLogic";
 import ProgressBar from "./components/ProgressBar";
 import useDebounce from "@/hooks/useDebounce";
+import { Score } from "./constants/score";
 
 const initialChooseResultValue = {
   isChoose: false,
@@ -29,7 +34,7 @@ const Page = () => {
   const [chooseResult, setChooseResult] = useState<TChooseResult>(
     initialChooseResultValue
   );
-  const [score, setScore] = useState(0);
+  const [currentScore, setCurrentScore] = useState(0);
   const [highestScore, setHighestScore] = useState(0);
   const [isLose, setIsLose] = useState(false);
   const modalRef = useRef<HTMLDialogElement | null>(null);
@@ -67,13 +72,23 @@ const Page = () => {
       currentTrack.artists[0].name === artistName
     ) {
       setChooseResult((prev) => ({ ...prev, isCorrect: true, isChoose: true }));
+
       //update score
-      setScore((prev) => prev + 1);
+      // setScore((prev) => prev + 1);
 
       //check if score is new high score
-      {
-        highestScore < score + 1 && setHighestScore(score + 1);
-      }
+      // {
+      //   highestScore < score + 1 && setHighestScore(score + 1);
+      // }
+
+      changeScore(
+        currentScore,
+        setCurrentScore,
+        highestScore,
+        setHighestScore,
+        playerState.songInterval,
+        Score.INCREMENT
+      );
 
       //if user didn't choose the correct awnser
     } else {
@@ -82,12 +97,22 @@ const Page = () => {
         isCorrect: false,
         isChoose: true,
       }));
+
       //update score
-      const updatedScore = score - 1;
-      setScore(updatedScore);
+      // const updatedScore = currentScore - 1;
+      // setCurrentScore(updatedScore);
+
+      changeScore(
+        currentScore,
+        setCurrentScore,
+        highestScore,
+        setHighestScore,
+        playerState.songInterval,
+        Score.DECREMENT
+      );
 
       //showing losing screen
-      if (updatedScore <= 0) {
+      if (currentScore <= 0) {
         modalRef.current?.setAttribute("open", "true");
         player?.pause();
         setIsLose(true);
@@ -100,7 +125,7 @@ const Page = () => {
     setIsLose(false);
 
     //reset score back to 0
-    setScore(0);
+    setCurrentScore(0);
 
     //reset highestScore back to 0
     setHighestScore(0);
@@ -114,7 +139,7 @@ const Page = () => {
 
   return (
     <PlayerWrapper playerState={playerState}>
-      <Score isLose={isLose} score={score} />
+      <GameScore isLose={isLose} score={currentScore} />
 
       <div className="flex flex-col items-center">
         <LoseModal
@@ -123,7 +148,7 @@ const Page = () => {
           highScore={highestScore}
           image={preloadImage}
           chooseResult={chooseResult}
-          score={score}
+          score={currentScore}
           handlePlayAgain={handlePlayAgain}
           ref={modalRef}
         />
@@ -167,11 +192,11 @@ const Page = () => {
           image={preloadImage}
           isBig={true}
           chooseResult={chooseResult}
-          score={score}
+          score={currentScore}
         />
 
         {/* show result */}
-        <Result chooseResult={chooseResult} score={score} />
+        <Result chooseResult={chooseResult} score={currentScore} />
       </div>
     </PlayerWrapper>
   );

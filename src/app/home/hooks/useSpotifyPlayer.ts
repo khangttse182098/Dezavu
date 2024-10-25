@@ -3,6 +3,7 @@ import { getSession } from "next-auth/react";
 import { getMostListenedTrackList } from "../utils/spotifyApi";
 import { initializeSpotifySdk } from "../utils/initializeSpotifySdk";
 import { TPlayerState } from "../types";
+import { GuessingAttempt } from "../constants/guessingAttempt";
 
 const initialPlayerStateValue = {
   accessToken: "",
@@ -16,7 +17,7 @@ const initialPlayerStateValue = {
   isPausing: false,
   isClicked: false,
   isContinue: false,
-  songInterval: 1,
+  songInterval: GuessingAttempt.FIRST_TIME,
 };
 
 export const useSpotifyPlayer = () => {

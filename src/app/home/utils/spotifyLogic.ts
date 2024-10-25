@@ -2,16 +2,57 @@ import { Dispatch, MutableRefObject, SetStateAction } from "react";
 import { TChooseResult, TPlayerState } from "../types";
 import { getTrackDetailById, playInterval, playTrackByUri } from "./spotifyApi";
 import { randomize } from "@/utils/randomize";
+import { GuessingAttempt } from "../constants/guessingAttempt";
+import { Score } from "../constants/score";
 
-export const handleChangeSongInterval = (songInterval: number) => {
-  if (songInterval === 1) {
-    return 2;
-  } else if (songInterval === 2) {
-    return 5;
-  } else if (songInterval === 5) {
-    return 8;
-  } else if (songInterval === 8) {
-    return 14;
+export const changeSongInterval = (songInterval: number) => {
+  if (songInterval === GuessingAttempt.FIRST_TIME) {
+    return GuessingAttempt.SECOND_TIME;
+  } else if (songInterval === GuessingAttempt.SECOND_TIME) {
+    return GuessingAttempt.THIRD_TIME;
+  } else if (songInterval === GuessingAttempt.THIRD_TIME) {
+    return GuessingAttempt.FOURTH_TIME;
+  } else if (songInterval === GuessingAttempt.FOURTH_TIME) {
+    return GuessingAttempt.FIFTH_TIME;
+  }
+};
+
+export const changeScore = (
+  currentScore: number,
+  setCurrentScore: Dispatch<SetStateAction<number>>,
+  highestScore: number,
+  setHighestScore: Dispatch<SetStateAction<number>>,
+  songInterval: number,
+  mode: string
+) => {
+  if (mode === Score.INCREMENT) {
+    //update score
+    let roundScore = 0;
+    if (songInterval === GuessingAttempt.FIRST_TIME) {
+      roundScore = Score.FIRST_TIME;
+    } else if (songInterval === GuessingAttempt.SECOND_TIME) {
+      roundScore = Score.SECOND_TIME;
+    } else if (songInterval === GuessingAttempt.THIRD_TIME) {
+      roundScore = Score.THIRD_TIME;
+    } else if (songInterval === GuessingAttempt.FOURTH_TIME) {
+      roundScore = Score.FOURTH_TIME;
+    } else if (songInterval === GuessingAttempt.FIFTH_TIME) {
+      roundScore = Score.FIFTH_TIME;
+    }
+
+    let newCurrentScore = roundScore + currentScore;
+
+    //check if score is new high score
+    if (highestScore < newCurrentScore) {
+      setHighestScore(newCurrentScore);
+    }
+
+    //update the score state
+    setCurrentScore(newCurrentScore);
+
+    // decrement case
+  } else if (mode === Score.DECREMENT) {
+    setCurrentScore((prev) => prev - Score.FIRST_TIME);
   }
 };
 
@@ -24,7 +65,7 @@ export const handleContinueTrack = async (
   //check if this is the last time we should increment songInterval
   if (songInterval < 14) {
     //get new songInterval
-    const newSongInterval = handleChangeSongInterval(songInterval);
+    const newSongInterval = changeSongInterval(songInterval);
     player?.togglePlay();
     player?.addListener("player_state_changed", (state) => {
       if (state && !state.loading && !state.paused) {
@@ -70,6 +111,12 @@ export const handlePlayTrack = async (
     //set isClicked to true
     setPlayerState((prev) => ({ ...prev, isClicked: true }));
 
+    //set songInterval to 1
+    setPlayerState((prev) => ({
+      ...prev,
+      songInterval: GuessingAttempt.FIRST_TIME,
+    }));
+
     //get random track's id
     const trackNumber = randomize(trackList.items.length as number);
     const trackId = trackList.items[trackNumber].id;
@@ -104,63 +151,3 @@ export const handlePlayTrack = async (
     );
   }
 };
-
-// export const handleChooseSearch = (
-//   songName: string,
-//   artistName: string,
-//   playerState: TPlayerState,
-//   score: number,
-//   highestScore: number,
-//   modalRef: MutableRefObject<HTMLDialogElement | null>,
-//   setPlayerState: Dispatch<SetStateAction<TPlayerState>>,
-//   setSearchString: Dispatch<SetStateAction<string>>,
-//   setChooseResult: Dispatch<SetStateAction<TChooseResult>>,
-//   setScore: Dispatch<SetStateAction<number>>,
-//   setHighestScore: Dispatch<SetStateAction<number>>,
-//   setIsLose: Dispatch<SetStateAction<boolean>>
-// ) => {
-//   const { currentTrack, player } = playerState;
-
-//   //set isPlay to true (use to show the search bar or not)
-//   setPlayerState((prev) => ({ ...prev, isPlaying: false }));
-
-//   //reset search state
-//   setSearchString("");
-
-//   //pause the track & play
-//   player?.pause();
-//   player?.togglePlay();
-
-//   //if user choose correct search result
-//   if (
-//     currentTrack?.name === songName &&
-//     currentTrack.artists[0].name === artistName
-//   ) {
-//     setChooseResult((prev) => ({ ...prev, isCorrect: true, isChoose: true }));
-//     //update score
-//     setScore((prev) => prev + 1);
-
-//     //check if score is new high score
-//     {
-//       highestScore < score + 1 && setHighestScore(score + 1);
-//     }
-
-//     //if user didn't choose the correct awnser
-//   } else {
-//     setChooseResult((prev) => ({
-//       ...prev,
-//       isCorrect: false,
-//       isChoose: true,
-//     }));
-//     //update score
-//     const updatedScore = score - 1;
-//     setScore(updatedScore);
-
-//     //showing losing screen
-//     if (updatedScore <= 0) {
-//       modalRef.current?.setAttribute("open", "true");
-//       player?.pause();
-//       setIsLose(true);
-//     }
-//   }
-// };
