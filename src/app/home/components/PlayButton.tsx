@@ -1,16 +1,27 @@
 import React from "react";
-import { TPlayerState } from "../page";
+import { TChooseResult, TPlayerState } from "../types";
 
 const PlayButton = ({
   handlePlayTrack,
   handleContinueTrack,
   playerState,
+  chooseResult,
 }: {
   handlePlayTrack: () => Promise<void>;
   handleContinueTrack: () => Promise<void>;
   playerState: TPlayerState;
+  chooseResult: TChooseResult;
 }) => {
   const { isContinue, isPlaying, isPausing, isClicked } = playerState;
+
+  const handleClick = () => {
+    if (chooseResult.isChoose) {
+      handlePlayTrack();
+    } else {
+      handleContinueTrack();
+    }
+  };
+
   return (
     <>
       {/* start playing */}
@@ -33,7 +44,7 @@ const PlayButton = ({
       {/* continue button */}
       {isContinue && (
         <button
-          onClick={handleContinueTrack}
+          onClick={handleClick}
           className={
             "w-56 h-20 font-bold text-white text-lg border-none rounded-lg scale-100 transition-all  bg-green-500 hover:bg-green-800 hover:scale-95"
           }

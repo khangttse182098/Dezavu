@@ -1,10 +1,18 @@
 import React, { forwardRef } from "react";
-import { TLoseModalProps } from "../page";
 import TrackDetails from "./TrackDetails";
+import { TLoseModalProps } from "../types";
 
 const LoseModal = forwardRef<HTMLDialogElement, TLoseModalProps>(
   (props: TLoseModalProps, ref) => {
-    const { highScore, songName, artistName, image, handlePlayAgain } = props;
+    const {
+      highScore,
+      songName,
+      artistName,
+      image,
+      chooseResult,
+      score,
+      handlePlayAgain,
+    } = props;
     return (
       <dialog
         ref={ref}
@@ -21,6 +29,8 @@ const LoseModal = forwardRef<HTMLDialogElement, TLoseModalProps>(
             artistName={artistName}
             image={image}
             isBig={false}
+            chooseResult={chooseResult}
+            score={score}
           />
           <button
             className="w-28 h-14 rounded-md bg-green-600 hover:bg-green-700 text-lg font-bold text-slate-950 transition-all mt-20"

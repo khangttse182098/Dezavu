@@ -1,5 +1,5 @@
 import React from "react";
-import { TPlayerState } from "../page";
+import { TPlayerState } from "../types";
 
 const PlayerWrapper = ({
   playerState,

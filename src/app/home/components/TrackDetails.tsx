@@ -1,5 +1,5 @@
 import React from "react";
-import { TChooseResult } from "../page";
+import { TChooseResult } from "../types";
 
 const TrackDetails = ({
   songName,
@@ -18,7 +18,7 @@ const TrackDetails = ({
 }) => {
   return (
     <>
-      {chooseResult?.isChoose && score > 0 && (
+      {chooseResult?.isChoose && (score > 0 || !isBig) && (
         <div className={isBig ? "h-60 w-60 my-14" : "h-32 w-32"}>
           <img src={image} alt="track images" className="rounded-md" />
           <h1

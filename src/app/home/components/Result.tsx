@@ -1,5 +1,5 @@
 import React from "react";
-import { TChooseResult } from "../page";
+import { TChooseResult } from "../types";
 
 const Result = ({
   chooseResult,
@@ -16,10 +16,8 @@ const Result = ({
         <h1 className="text-4xl font-bold text-green-600 my-10">Correct!</h1>
       )}
       {/* show incorrect text */}
-      {chooseResult && !chooseResult && score > 0 && (
-        <>
-          <h1 className="text-4xl text-red-600 my-10">Incorrect!</h1>
-        </>
+      {isChoose && !isCorrect && score > 0 && (
+        <h1 className="text-4xl font-bold text-red-600 my-10">Incorrect!</h1>
       )}
     </>
   );

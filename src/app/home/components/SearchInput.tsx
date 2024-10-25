@@ -1,17 +1,19 @@
 import React, { Dispatch, SetStateAction } from "react";
-import { TPlayerState } from "../page";
+import { TChooseResult, TPlayerState } from "../types";
 
 const SearchInput = ({
   playerState,
   setSearchString,
+  chooseResult,
 }: {
   playerState: TPlayerState;
   setSearchString: Dispatch<SetStateAction<string>>;
+  chooseResult: TChooseResult;
 }) => {
-  const { isPlaying, isPausing } = playerState;
+  const { isPausing } = playerState;
   return (
     <>
-      {isPlaying && isPausing && (
+      {isPausing && !chooseResult.isChoose && (
         <input
           type="search"
           placeholder="Enter your guess"

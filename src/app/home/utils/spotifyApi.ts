@@ -1,4 +1,4 @@
-import { TPlayerState } from "../page";
+import { TPlayerState } from "../types";
 
 //play the song for x seconds
 export const playInterval = (

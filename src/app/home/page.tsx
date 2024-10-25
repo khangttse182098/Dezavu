@@ -4,24 +4,27 @@
 "use client";
 
 import { randomize } from "@/utils/randomize";
-import { getSession } from "next-auth/react";
 import { useEffect, useRef, useState } from "react";
 import {
-  getMostListenedTrackList,
   getTrackDetailById,
   playInterval,
   playTrackByUri,
-  searchTracks,
 } from "./utils/spotifyApi";
 import PlayButton from "./components/PlayButton";
 import SearchList from "./components/SearchList";
-import { initializeSpotifySdk } from "./utils/initializeSpotifySdk";
 import TrackDetails from "./components/TrackDetails";
 import LoseModal from "./components/LoseModal";
 import PlayerWrapper from "./components/PlayerWrapper";
 import Score from "./components/Score";
 import SearchInput from "./components/SearchInput";
 import Result from "./components/Result";
+import { useSearch } from "./hooks/useSearch";
+import { useSpotifyPlayer } from "./hooks/useSpotifyPlayer";
+import { TChooseResult } from "./types";
+import { usePreloadImage } from "./hooks/usePreloadImage";
+import { handleContinueTrack, handlePlayTrack } from "./utils/spotifyLogic";
+import ProgressBar from "./components/ProgressBar";
+import useDebounce from "@/hooks/useDebounce";
 
 declare global {
   interface Window {
@@ -30,47 +33,6 @@ declare global {
   }
 }
 
-export type TPlayerState = {
-  accessToken: string | null;
-  trackList: SpotifyApi.UsersTopTracksResponse | null;
-  player: Spotify.Player | null;
-  deviceId: string | null;
-  isReady: boolean;
-  sdkReady: boolean;
-  currentTrack: SpotifyApi.SingleTrackResponse | null;
-  isPlaying: boolean;
-  isPausing: boolean;
-  isClicked: boolean;
-  isContinue: boolean;
-};
-
-export type TChooseResult = {
-  isChoose: boolean;
-  isCorrect: boolean;
-};
-
-export type TLoseModalProps = {
-  highScore: number;
-  songName: string;
-  artistName: string;
-  image: string;
-  handlePlayAgain: () => void;
-};
-
-const initialPlayerStateValue = {
-  accessToken: "",
-  trackList: null,
-  player: null,
-  deviceId: "",
-  isReady: false,
-  sdkReady: false,
-  currentTrack: null,
-  isPlaying: false,
-  isPausing: false,
-  isClicked: false,
-  isContinue: false,
-};
-
 const initialChooseResultValue = {
   isChoose: false,
   isCorrect: false,
@@ -78,133 +40,29 @@ const initialChooseResultValue = {
 
 //main component
 const Page = () => {
-  const [playerState, setPlayerState] = useState<TPlayerState>(
-    initialPlayerStateValue
-  );
-
   const [searchString, setSearchString] = useState("");
-  const [searchResultList, setSearchResultList] =
-    useState<SpotifyApi.TrackSearchResponse | null>(null);
+  const debouncedSearch = useDebounce(searchString);
   const [chooseResult, setChooseResult] = useState<TChooseResult>(
     initialChooseResultValue
   );
   const [score, setScore] = useState(0);
-  const [preloadImage, setPreloadImage] = useState("");
   const modalRef = useRef<HTMLDialogElement | null>(null);
   const [highestScore, setHighestScore] = useState(0);
   const [isLose, setIsLose] = useState(false);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      //get access token
-      const session = await getSession();
-      setPlayerState((prev) => ({
-        ...prev,
-        accessToken: session?.access_token as string | null,
-      }));
+  // get player state
+  const { playerState, setPlayerState } = useSpotifyPlayer();
 
-      //get track list
-      const trackList = await getMostListenedTrackList();
-      setPlayerState((prev) => ({
-        ...prev,
-        trackList,
-      }));
-
-      //initialize spotify sdk
-      initializeSpotifySdk(session?.access_token as string, setPlayerState);
-    };
-    fetchData();
-  }, []);
-
-  //search user's input
-  useEffect(() => {
-    const fetchData = async () => {
-      if (searchString) {
-        const data = await searchTracks(
-          searchString,
-          playerState.accessToken as string
-        );
-        setSearchResultList(data);
-      } else {
-        setSearchResultList(null);
-      }
-    };
-    fetchData();
-  }, [searchString]);
+  // search result list
+  const { searchResultList } = useSearch(
+    debouncedSearch,
+    playerState.accessToken
+  );
 
   //load image in advance
-  useEffect(() => {
-    if (playerState.currentTrack) {
-      const img = new Image();
-      img.src = playerState.currentTrack.album.images[0].url;
-      img.onload = () => setPreloadImage(img.src);
-    }
-  }, [playerState.currentTrack]);
-
-  //handle continue playing track
-  const handleContinueTrack = async () => {
-    const { player } = playerState;
-    player?.togglePlay();
-    player?.addListener("player_state_changed", (state) => {
-      if (state && !state.loading && !state.paused) {
-        setPlayerState((prev) => ({ ...prev, isPlaying: true }));
-        playInterval(2, playerState.player as Spotify.Player, setPlayerState);
-      }
-    });
-  };
-
-  //handle play track at random time
-  const handlePlayTrack = async () => {
-    const { accessToken, trackList, deviceId, isReady, sdkReady, player } =
-      playerState;
-
-    if (accessToken && trackList && deviceId && isReady && sdkReady && player) {
-      //pause previous track if currently play
-      player.pause();
-
-      //reset choosing state
-      setChooseResult((prev) => ({
-        ...prev,
-        isCorrect: false,
-        isChoose: false,
-      }));
-
-      //set isClicked to true
-      setPlayerState((prev) => ({ ...prev, isClicked: true }));
-
-      //get random track's id
-      const trackNumber = randomize(trackList.items.length as number);
-      const trackId = trackList.items[trackNumber].id;
-      console.log(`TrackId: ${trackId}`);
-
-      //get random track uri
-      const trackUri = trackList.items[trackNumber].uri;
-      console.log(`TrackUri: ${trackUri}`);
-
-      //get random track's detail
-      const trackDetail = await getTrackDetailById(accessToken, trackId);
-      setPlayerState((prev) => ({ ...prev, currentTrack: trackDetail }));
-      const trackDuration = trackDetail.duration_ms;
-
-      //subtract 30s from the end
-      const subtractedTrackTime = trackDuration - 30000;
-
-      //get random track duration
-      const randomTrackDuration = randomize(subtractedTrackTime);
-      console.log(`RandomTrackDuration: ${randomTrackDuration}`);
-
-      // play the track
-      await playTrackByUri(
-        trackUri,
-        accessToken,
-        randomTrackDuration,
-        deviceId as string,
-        player as Spotify.Player,
-        setPlayerState,
-        trackDuration
-      );
-    }
-  };
+  const { preloadImage } = usePreloadImage(
+    playerState.currentTrack?.album.images[0].url
+  );
 
   const handleChooseSearch = (songName: string, artistName: string) => {
     const { currentTrack, player } = playerState;
@@ -258,6 +116,7 @@ const Page = () => {
     setScore(0);
     setHighestScore(0);
     modalRef.current?.removeAttribute("open");
+    handlePlayTrack(playerState, setPlayerState, setChooseResult);
   };
 
   return (
@@ -270,19 +129,27 @@ const Page = () => {
           artistName={playerState.currentTrack?.artists[0].name as string}
           highScore={highestScore}
           image={preloadImage}
+          chooseResult={chooseResult}
+          score={score}
           handlePlayAgain={handlePlayAgain}
           ref={modalRef}
         />
         {!isLose && (
           <div className="flex flex-col gap-3">
             <PlayButton
-              handlePlayTrack={handlePlayTrack}
-              handleContinueTrack={handleContinueTrack}
+              handlePlayTrack={() =>
+                handlePlayTrack(playerState, setPlayerState, setChooseResult)
+              }
+              handleContinueTrack={() =>
+                handleContinueTrack(playerState, setPlayerState)
+              }
               playerState={playerState}
+              chooseResult={chooseResult}
             />
             <SearchInput
               playerState={playerState}
               setSearchString={setSearchString}
+              chooseResult={chooseResult}
             />
           </div>
         )}
@@ -291,14 +158,11 @@ const Page = () => {
         <SearchList
           searchResultList={searchResultList}
           handleChooseSearch={handleChooseSearch}
+          chooseResult={chooseResult}
         />
 
         {/* progress bar */}
-        <progress
-          value="10"
-          max="100"
-          className="[&::-webkit-progress-bar]:rounded-md [&::-webkit-progress-bar]:bg-white [&::-webkit-progress-value]:rounded-md [&::-webkit-progress-value]:bg-blue-500 h-3 w-56 mt-14"
-        />
+        <ProgressBar chooseResult={chooseResult} />
 
         {/* show track detail */}
         <TrackDetails

@@ -1,4 +1,4 @@
-import { TPlayerState } from "../page";
+import { TPlayerState } from "../types";
 
 export const initializeSpotifySdk = (
   accessToken: string,

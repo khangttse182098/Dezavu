@@ -1,15 +1,19 @@
 import React from "react";
+import { TChooseResult } from "../types";
 
 const SearchList = ({
   searchResultList,
   handleChooseSearch,
+  chooseResult,
 }: {
   searchResultList: SpotifyApi.TrackSearchResponse | null;
   handleChooseSearch: (trackName: string, artistName: string) => void;
+  chooseResult: TChooseResult;
 }) => {
   return (
     <ul>
       {searchResultList &&
+        !chooseResult.isCorrect &&
         searchResultList?.tracks.items.map((track, index) => (
           <li key={index}>
             <div
