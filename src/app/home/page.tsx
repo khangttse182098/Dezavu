@@ -74,13 +74,6 @@ const Page = () => {
       setChooseResult((prev) => ({ ...prev, isCorrect: true, isChoose: true }));
 
       //update score
-      // setScore((prev) => prev + 1);
-
-      //check if score is new high score
-      // {
-      //   highestScore < score + 1 && setHighestScore(score + 1);
-      // }
-
       changeScore(
         currentScore,
         setCurrentScore,
@@ -99,9 +92,6 @@ const Page = () => {
       }));
 
       //update score
-      // const updatedScore = currentScore - 1;
-      // setCurrentScore(updatedScore);
-
       changeScore(
         currentScore,
         setCurrentScore,
