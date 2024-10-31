@@ -1,4 +1,4 @@
-import Provider from "../context/Provider";
+import AuthProvider from "../context/Provider";
 import "@/app/global.css";
 
 export const metadata = {
@@ -12,10 +12,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <Provider>
+    <AuthProvider>
       <html lang="en">
         <body style={{ backgroundColor: "black" }}>{children}</body>
       </html>
-    </Provider>
+    </AuthProvider>
   );
 }

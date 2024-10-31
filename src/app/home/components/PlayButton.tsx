@@ -50,8 +50,9 @@ const PlayButton = ({
               ? "bg-green-800"
               : "bg-green-500 hover:bg-green-800 hover:scale-95"
           }`}
-          disabled={isPlaying ? true : false}
+          disabled={isPlaying || isClicked ? true : false}
         >
+          {isClicked && "Loading..."}
           {isPlaying && "Playing..."}
           {!isClicked && !isPlaying && "Continue"}
         </button>
