@@ -73,10 +73,11 @@ export const playTrackByUri = async (
     if (response.ok) {
       // Once the song is playing, call playInterval() function
       player.addListener("player_state_changed", (state) => {
+        console.log(`Track duration: ${duration}`);
+        console.log(`Current track duration: ${state.duration}`);
         if (
           state &&
-          state.duration === duration &&
-          state.position === position &&
+          // state.position === position &&
           !state.loading &&
           !state.paused
         ) {
