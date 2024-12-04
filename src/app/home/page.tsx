@@ -21,7 +21,6 @@ import {
 import ProgressBar from "./components/ProgressBar";
 import useDebounce from "@/hooks/useDebounce";
 import { Score } from "./constants/score";
-import { signOut } from "next-auth/react";
 
 const initialChooseResultValue = {
   isChoose: false,
@@ -130,13 +129,6 @@ const Page = () => {
 
   return (
     <PlayerWrapper playerState={playerState}>
-      <button
-        className="bg-red-600 w-40 h-10 font-bold text-slate-300 text-md mt-3 absolute right-2 border-none rounded-md scale-100 hover:scale-95 transition-all"
-        onClick={() => signOut({ callbackUrl: "http://localhost:3000/" })}
-      >
-        Log out
-      </button>
-
       <GameScore isLose={isLose} score={currentScore} />
 
       <div className="flex flex-col items-center">

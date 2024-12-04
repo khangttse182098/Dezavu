@@ -10,7 +10,6 @@ const PlayerWrapper = ({
 }) => {
   const { accessToken, trackList, deviceId, player, isReady, sdkReady } =
     playerState;
-
   return (
     <>
       {accessToken && trackList && deviceId && player && isReady && sdkReady ? (
