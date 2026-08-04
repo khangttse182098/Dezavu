@@ -107,7 +107,7 @@ export const playTrackByUri = async (
 };
 
 export const getMostListenedTrackList = async () => {
-  const res = await fetch("http://127.0.0.1:3000/api/track");
+  const res = await fetch(`${process.env.NEXTAUTH_URL}/api/track`);
   return await res.json();
 };
 
