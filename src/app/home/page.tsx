@@ -131,7 +131,7 @@ const Page = () => {
     <PlayerWrapper playerState={playerState}>
       <GameScore isLose={isLose} score={currentScore} />
 
-      <div className="flex flex-col items-center">
+      <div className="flex flex-col items-center pt-20">
         <LoseModal
           songName={playerState.currentTrack?.name as string}
           artistName={playerState.currentTrack?.artists[0].name as string}
@@ -143,7 +143,7 @@ const Page = () => {
           ref={modalRef}
         />
         {!isLose && (
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-4">
             <PlayButton
               handlePlayTrack={() =>
                 handlePlayTrack(playerState, setPlayerState, setChooseResult)

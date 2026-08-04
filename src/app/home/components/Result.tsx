@@ -13,11 +13,15 @@ const Result = ({
     <>
       {/* show correct text */}
       {isChoose && isCorrect && (
-        <h1 className="text-4xl font-bold text-green-600 my-10">Correct!</h1>
+        <h1 className="my-10 font-display text-5xl tracking-wide text-accent">
+          CORRECT!
+        </h1>
       )}
       {/* show incorrect text */}
       {isChoose && !isCorrect && score > 0 && (
-        <h1 className="text-4xl font-bold text-red-600 my-10">Incorrect!</h1>
+        <h1 className="my-10 font-display text-5xl tracking-wide text-red-500">
+          INCORRECT!
+        </h1>
       )}
     </>
   );

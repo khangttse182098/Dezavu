@@ -17,7 +17,8 @@ const SearchInput = ({
         <input
           type="search"
           placeholder="Enter your guess"
-          className="p-5 rounded-lg"
+          autoFocus
+          className="h-14 w-72 rounded-sm border border-neutral-800 bg-neutral-900 px-4 text-white outline-none transition-colors placeholder:text-neutral-500 focus:border-accent"
           onChange={(e) => setSearchString(e.currentTarget.value)}
         />
       )}

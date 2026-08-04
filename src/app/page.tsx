@@ -5,16 +5,27 @@ import { signIn } from "next-auth/react";
 
 const page = () => {
   return (
-    <div className="h-screen w-screen flex justify-center items-center">
+    <main className="flex min-h-screen flex-col items-center justify-center gap-12 px-6">
+      <div className="text-center">
+        <h1 className="font-display text-7xl text-white sm:text-8xl">
+          DEZAVU<span className="text-accent">.</span>
+        </h1>
+        <p className="mt-5 text-xs uppercase tracking-[0.4em] text-neutral-500">
+          Hear it &middot; Name it &middot; Score
+        </p>
+      </div>
+
       <button
-        className="bg-green-600 w-56 h-20 font-bold text-slate-300 text-lg border-none rounded-md scale-100 hover:scale-95 transition-all"
-        onClick={() =>
-          signIn("spotify", { callbackUrl: "http://localhost:3000/home" })
-        }
+        className="h-14 w-72 rounded-sm bg-accent text-sm font-bold uppercase tracking-[0.2em] text-black transition-colors hover:bg-accent-dark"
+        onClick={() => signIn("spotify", { callbackUrl: "/home" })}
       >
-        Login with Spotify
+        Log in with Spotify
       </button>
-    </div>
+
+      <p className="text-xs text-neutral-600">
+        Requires a Spotify Premium account
+      </p>
+    </main>
   );
 };
 

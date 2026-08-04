@@ -16,12 +16,19 @@ const LoseModal = forwardRef<HTMLDialogElement, TLoseModalProps>(
     return (
       <dialog
         ref={ref}
-        className="w-96 h-96 mx-auto rounded-md bg-slate-300 mt-48 p-0 m-0"
+        className="mx-auto mt-32 w-96 rounded-sm border border-neutral-800 bg-neutral-950 p-8 text-white"
       >
-        <div className="w-full h-full flex flex-col items-center">
+        <div className="flex w-full flex-col items-center gap-6">
           <div className="text-center">
-            <p className="text-4xl font-bold">You lose!</p>
-            <p>High score: {highScore}</p>
+            <p className="font-display text-5xl tracking-wide text-white">
+              YOU LOSE
+            </p>
+            <p className="mt-3 text-xs uppercase tracking-[0.25em] text-neutral-500">
+              High score
+              <span className="ml-2 font-display text-xl tabular-nums text-accent">
+                {highScore}
+              </span>
+            </p>
           </div>
           {/* show song detail */}
           <TrackDetails
@@ -33,7 +40,7 @@ const LoseModal = forwardRef<HTMLDialogElement, TLoseModalProps>(
             score={score}
           />
           <button
-            className="w-28 h-14 rounded-md bg-green-600 hover:bg-green-700 text-lg font-bold text-slate-950 transition-all mt-20"
+            className="h-14 w-full rounded-sm bg-accent text-sm font-bold uppercase tracking-[0.2em] text-black transition-colors hover:bg-accent-dark"
             onClick={() => handlePlayAgain()}
           >
             Play again

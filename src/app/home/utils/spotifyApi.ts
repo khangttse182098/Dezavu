@@ -4,7 +4,7 @@ import { TPlayerState } from "../types";
 export const playInterval = (
   duration: number,
   player: Spotify.Player,
-  setPlayerState: React.Dispatch<React.SetStateAction<TPlayerState>>
+  setPlayerState: React.Dispatch<React.SetStateAction<TPlayerState>>,
 ) => {
   console.log("Playing in interval...");
   setTimeout(() => {
@@ -53,7 +53,7 @@ export const playTrackByUri = async (
   player: Spotify.Player,
   songInterval: number,
   setPlayerState: React.Dispatch<React.SetStateAction<TPlayerState>>,
-  duration: number
+  duration: number,
 ) => {
   const url = `${process.env.NEXT_PUBLIC_SPOTIFY_API_BASE_URL}/me/player/play/?device_id=${deviceId}`;
 
@@ -107,13 +107,13 @@ export const playTrackByUri = async (
 };
 
 export const getMostListenedTrackList = async () => {
-  const res = await fetch("http://localhost:3000/api/track");
+  const res = await fetch("http://127.0.0.1:3000/api/track");
   return await res.json();
 };
 
 export const searchTracks = async (
   searchString: string,
-  accessToken: string
+  accessToken: string,
 ): Promise<SpotifyApi.TrackSearchResponse> => {
   const res = await fetch(
     `${process.env.NEXT_PUBLIC_SPOTIFY_API_BASE_URL}/search?q=${searchString}&type=track&limit=4`,
@@ -121,7 +121,7 @@ export const searchTracks = async (
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },
-    }
+    },
   );
   const data = await res.json();
   console.log(data);

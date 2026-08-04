@@ -10,32 +10,35 @@ const SearchList = ({
   handleChooseSearch: (trackName: string, artistName: string) => void;
   chooseResult: TChooseResult;
 }) => {
+  const hasResults =
+    searchResultList &&
+    !chooseResult.isCorrect &&
+    searchResultList.tracks.items.length > 0;
+
   return (
-    <ul>
-      {searchResultList &&
-        !chooseResult.isCorrect &&
-        searchResultList?.tracks.items.map((track, index) => (
-          <li key={index}>
-            <div
-              className={`w-56 min-h-14 bg-white px-2 border-b ${
-                index !== searchResultList?.tracks.items.length - 1 &&
-                "border-b-slate-500"
-              } hover:bg-slate-300 transition-all ${
-                index === 0 && "rounded-t-md"
-              } ${
-                index === searchResultList?.tracks.items.length - 1 &&
-                "rounded-b-md"
-              }`}
-              onClick={() =>
-                handleChooseSearch(track.name, track.album.artists[0].name)
-              }
-            >
-              <h1 className="font-bold text-md">{track.name}</h1>
-              <p className="text-sm">{track.album.artists[0].name}</p>
-            </div>
-          </li>
-        ))}
-    </ul>
+    <>
+      {hasResults && (
+        <ul className="mt-2 w-72 divide-y divide-neutral-800 overflow-hidden rounded-sm border border-neutral-800">
+          {searchResultList.tracks.items.map((track, index) => (
+            <li key={index}>
+              <button
+                className="w-full bg-neutral-900 px-4 py-3 text-left transition-colors hover:bg-neutral-800"
+                onClick={() =>
+                  handleChooseSearch(track.name, track.album.artists[0].name)
+                }
+              >
+                <h1 className="truncate text-sm font-bold text-white">
+                  {track.name}
+                </h1>
+                <p className="truncate text-xs text-neutral-400">
+                  {track.album.artists[0].name}
+                </p>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </>
   );
 };
 
