@@ -8,11 +8,10 @@ const PlayerWrapper = ({
   playerState: TPlayerState;
   children: React.ReactNode;
 }) => {
-  const { accessToken, trackList, deviceId, player, isReady, sdkReady } =
-    playerState;
+  const { accessToken, deviceId, player, isReady, sdkReady } = playerState;
   return (
     <>
-      {accessToken && trackList && deviceId && player && isReady && sdkReady ? (
+      {accessToken && deviceId && player && isReady && sdkReady ? (
         children
       ) : (
         <div className="flex h-screen w-screen flex-col items-center justify-center gap-6">

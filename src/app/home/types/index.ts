@@ -5,9 +5,22 @@ declare global {
   }
 }
 
+export type TGameMode = "topTracks" | "playlist" | "multiplayer";
+
+export type TAnswerMode = "search" | "multipleChoice";
+
+export type TChoiceOption = {
+  name: string;
+  artist: string;
+};
+
+export type TTrackList = {
+  items: SpotifyApi.TrackObjectFull[];
+};
+
 export type TPlayerState = {
   accessToken: string | null;
-  trackList: SpotifyApi.UsersTopTracksResponse | null;
+  trackList: TTrackList | null;
   player: Spotify.Player | null;
   deviceId: string | null;
   isReady: boolean;
@@ -40,4 +53,5 @@ export type TLoseModalProps = {
   chooseResult: TChooseResult;
   score: number;
   handlePlayAgain: () => void;
+  handleChangeMode: () => void;
 };

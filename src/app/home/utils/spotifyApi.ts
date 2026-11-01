@@ -111,6 +111,18 @@ export const getMostListenedTrackList = async () => {
   return await res.json();
 };
 
+export const getUserPlaylists = async (): Promise<
+  SpotifyApi.PlaylistObjectSimplified[]
+> => {
+  const res = await fetch("/api/playlist");
+  return await res.json();
+};
+
+export const getPlaylistTrackList = async (playlistId: string) => {
+  const res = await fetch(`/api/playlist/${playlistId}`);
+  return await res.json();
+};
+
 export const searchTracks = async (
   searchString: string,
   accessToken: string,

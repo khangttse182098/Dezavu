@@ -12,6 +12,7 @@ const LoseModal = forwardRef<HTMLDialogElement, TLoseModalProps>(
       chooseResult,
       score,
       handlePlayAgain,
+      handleChangeMode,
     } = props;
     return (
       <dialog
@@ -44,6 +45,12 @@ const LoseModal = forwardRef<HTMLDialogElement, TLoseModalProps>(
             onClick={() => handlePlayAgain()}
           >
             Play again
+          </button>
+          <button
+            className="h-14 w-full rounded-sm border border-neutral-800 bg-neutral-900 text-sm font-bold uppercase tracking-[0.2em] text-white transition-colors hover:bg-neutral-800"
+            onClick={() => handleChangeMode()}
+          >
+            Change mode
           </button>
         </div>
       </dialog>

@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { getSession } from "next-auth/react";
-import { getMostListenedTrackList } from "../utils/spotifyApi";
 import { initializeSpotifySdk } from "../utils/initializeSpotifySdk";
 import { TPlayerState } from "../types";
 import { GuessingAttempt } from "../constants/guessingAttempt";
@@ -32,13 +31,6 @@ export const useSpotifyPlayer = () => {
       setPlayerState((prev) => ({
         ...prev,
         accessToken: session?.access_token as string | null,
-      }));
-
-      //get track list
-      const trackList = await getMostListenedTrackList();
-      setPlayerState((prev) => ({
-        ...prev,
-        trackList,
       }));
 
       //initialize spotify sdk

@@ -131,8 +131,8 @@ export const handlePlayTrack = async (
     setPlayerState((prev) => ({ ...prev, currentTrack: trackDetail }));
     const trackDuration = trackDetail.duration_ms;
 
-    //subtract 30s from the end
-    const subtractedTrackTime = trackDuration - 30000;
+    //subtract 30s from the end (short tracks just start from the beginning)
+    const subtractedTrackTime = Math.max(trackDuration - 30000, 1);
 
     //get random track duration
     const randomTrackDuration = randomize(subtractedTrackTime);
@@ -149,5 +149,8 @@ export const handlePlayTrack = async (
       setPlayerState,
       trackDuration
     );
+
+    //hand the picked track back so the caller can build the round (e.g. multiple choice options)
+    return trackDetail as SpotifyApi.SingleTrackResponse;
   }
 };
